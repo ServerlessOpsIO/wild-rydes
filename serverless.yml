@@ -1,0 +1,204 @@
+# Wild Rydes website
+service: wild-rydes
+
+plugins:
+  - serverless-s3-sync
+  - serverless-python-requirements
+
+
+custom:
+  stage: "${opt:stage, env:SLS_STAGE, 'dev'}"
+  profile: "${opt:aws-profile, env:AWS_PROFILE, env:AWS_DEFAULT_PROFILE, 'default'}"
+  hostedZoneName: "${env:SLS_HOSTED_ZONE_NAME, 'dev.training.serverlessops.io'}"
+  bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
+  # Additional region zone IDs and DNS names found here:
+  # https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
+  aliasHostedZoneId: Z3AQBSTGFYJSTF    # us-east-1
+  aliasDNSName: s3-website-us-east-1.amazonaws.com
+
+  indexDocument: index.html
+  errorDocument: error.html
+
+  s3Sync:
+    - bucketName: ${self:custom.bucketName}
+      localDir: static
+
+  unicorn_hash_key: 'Name'
+  unicorn_table_data: 'data/unicorns.json'
+  config_s3_object: 'js/config.js'
+
+
+provider:
+  name: aws
+  runtime: python3.6
+  profile: ${self:custom.profile}
+  stage: ${self:custom.stage}
+  stackTags:
+    serverless:service: ${self:service}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:Scan
+      Resource:
+        Fn::GetAtt:
+          - UnicornsTable
+          - Arn
+    - Effect: "Allow"
+      Action:
+        - "s3:PutObject"
+        - "s3:PutObjectAcl"
+        - "s3:PutObjectVersionAcl"
+        - "s3:DeleteObject"
+      Resource:
+        - Fn::Join:
+          - '/'
+          - - Fn::GetAtt:
+              - StaticSite
+              - Arn
+            - '*'
+
+
+functions:
+  RequestRide:
+    handler: handlers/request_ride.handler
+    description: "Request a ride."
+    memorySize: 128
+    timeout: 30
+    environment:
+      REQUEST_UNICORN_URL:
+        Fn::Join:
+          - ""
+          - - "https://"
+            - Ref: ApiGatewayRestApi
+            - ".execute-api."
+            - Ref: AWS::Region
+            - ".amazonaws.com/"
+            - "${self:custom.stage}"
+            - "/unicorn"
+    events:
+      - http:
+          path: /ride
+          method: post
+          cors: true
+
+  RequestUnicorn:
+    handler: handlers/get_unicorn.handler
+    description: "Request a Unicorn."
+    memorySize: 128
+    timeout: 30
+    environment:
+      DYNAMODB_TABLE:
+        Ref: UnicornsTable
+      UNICORN_HASH_KEY: "${self:custom.unicorn_hash_key}"
+    events:
+      - http:
+          path: /unicorn
+          method: get
+
+  LoadTable:
+    handler: handlers/load_table.handler
+    description: "Load an initial table."
+    memorySize: 128
+    timeout: 60
+    environment:
+      DYNAMODB_TABLE:
+        Ref: UnicornsTable
+      INITIAL_TABLE_DATA: "${self:custom.unicorn_table_data}"
+
+
+resources:
+  Resources:
+    ## Specifying the S3 Bucket
+    StaticSite:
+      Type: AWS::S3::Bucket
+      Properties:
+        AccessControl: PublicRead
+        BucketName: ${self:custom.bucketName}
+        WebsiteConfiguration:
+          IndexDocument: ${self:custom.indexDocument}
+          ErrorDocument: ${self:custom.errorDocument}
+
+    StaticSiteS3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: StaticSite
+        PolicyDocument:
+          Statement:
+            - Sid: PublicReadGetObject
+              Effect: Allow
+              Principal: "*"
+              Action:
+              - s3:GetObject
+              Resource:
+                Fn::Join: [
+                  "", [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "StaticSite"
+                    },
+                    "/*"
+                  ]
+                ]
+
+    DnsRecord:
+      Type: "AWS::Route53::RecordSet"
+      Properties:
+        AliasTarget:
+          DNSName: ${self:custom.aliasDNSName}
+          HostedZoneId: ${self:custom.aliasHostedZoneId}
+        HostedZoneName: ${self:custom.hostedZoneName}.
+        Name:
+          Ref: StaticSite
+        Type: 'A'
+
+    UnicornsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: "${self:custom.unicorn_hash_key}"
+            AttributeType: S
+        KeySchema:
+          - AttributeName: "${self:custom.unicorn_hash_key}"
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+
+    LoadTable:
+      Type: "Custom::LoadTable"
+      Properties:
+        ServiceToken:
+          Fn::GetAtt:
+            - LoadTableLambdaFunction
+            - Arn
+        InvokeUrl:
+          Fn::Join:
+            - ""
+            - - "https://"
+              - Ref: ApiGatewayRestApi
+              - ".execute-api."
+              - Ref: AWS::Region
+              - ".amazonaws.com/"
+              - "${self:custom.stage}"
+
+  Outputs:
+    StaticSiteS3BucketName:
+      Description: "Name of site S3 bucket"
+      Value:
+        'Ref': StaticSite
+      Export:
+        Name: "${self:service}-${self:custom.stage}-StaticSiteS3BucketName"
+
+    StaticSiteS3BucketWebsiteURL:
+      Description: "Website URL using Route53 record"
+      Value:
+        Fn::Join:
+          - ''
+          - - 'http://'
+            - Ref: StaticSite
+      Export:
+        Name: "${self:service}-${self:custom.stage}-StaticSiteS3BucketWebsiteURL"
+
