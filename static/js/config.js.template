@@ -1,3 +1,5 @@
+// Just h3ere as an example. We don't use this file. We use what is created by
+// a Lambda custom resource.
 window._config = {
     cognito: {
         userPoolId: '', // e.g. us-east-2_uXboG5pAb
