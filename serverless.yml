@@ -55,7 +55,7 @@ provider:
         - Fn::Join:
           - '/'
           - - Fn::GetAtt:
-              - StaticSite
+              - StaticSiteConfig
               - Arn
             - '*'
 
@@ -107,6 +107,12 @@ functions:
         Ref: UnicornsTable
       INITIAL_TABLE_DATA: "${self:custom.unicorn_table_data}"
 
+  StaticSiteConfig:
+    handler: handlers/update_static_site_config.handler
+    description: "Update site config."
+    memorySize: 128
+    timeout: 60
+
 
 resources:
   Resources:
@@ -138,6 +144,34 @@ resources:
                     "arn:aws:s3:::",
                     {
                       "Ref": "StaticSite"
+                    },
+                    "/*"
+                  ]
+                ]
+
+    StaticSiteConfig:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.bucketName}-config
+
+    StaticSiteConfigS3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: StaticSiteConfig
+        PolicyDocument:
+          Statement:
+            - Sid: PublicReadGetObject
+              Effect: Allow
+              Principal: "*"
+              Action:
+              - s3:GetObject
+              Resource:
+                Fn::Join: [
+                  "", [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "StaticSiteConfig"
                     },
                     "/*"
                   ]
@@ -183,6 +217,27 @@ resources:
               - Ref: AWS::Region
               - ".amazonaws.com/"
               - "${self:custom.stage}"
+
+    StaticSiteConfigUpdate:
+      Type: "Custom::ConfigFile"
+      Properties:
+        ServiceToken:
+          Fn::GetAtt:
+            - StaticSiteConfigLambdaFunction
+            - Arn
+        S3Bucket:
+          Ref: StaticSiteConfig
+        S3Object: "${self:custom.config_s3_object}"
+        RequestRideUrl:
+          Fn::Join:
+            - ""
+            - - "https://"
+              - Ref: ApiGatewayRestApi
+              - ".execute-api."
+              - Ref: AWS::Region
+              - ".amazonaws.com/"
+              - "${self:custom.stage}"
+              - "/ride"
 
   Outputs:
     StaticSiteS3BucketName:
