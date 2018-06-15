@@ -3,6 +3,7 @@
   "description": "Wild Rydes",
   "version": "0.1.0",
   "license": "MIT",
+  "repository": "github:ServerlessOpsIO/wild-rydes",
   "dependencies": {},
   "devDependencies": {
     "serverless-python-requirements": "^4.0.3",
