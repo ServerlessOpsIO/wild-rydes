@@ -9,10 +9,7 @@ import uuid
 
 import boto3
 
-log_level = os.environ.get('LOG_LEVEL', 'INFO')
-logging.root.setLevel(logging.getLevelName(log_level))  # type:ignore
-logging.getLogger('botocore').setLevel(logging.WARN)
-logging.getLogger('boto3').setLevel(logging.getLevelName(log_level))    # type:ignore
+logging.root.setLevel(logging.INFO)
 _logger = logging.getLogger(__name__)
 
 DYNAMODB_TABLE = os.environ.get('DYNAMODB_TABLE')
@@ -65,7 +62,7 @@ def _get_pickup_location(body):
 
 def handler(event, context):
     '''Function entry'''
-    _logger.debug('Request: {}'.format(json.dumps(event)))
+    _logger.info('Request: {}'.format(json.dumps(event)))
 
     body = json.loads(event.get('body'))
     pickup_location = _get_pickup_location(body)
@@ -79,6 +76,6 @@ def handler(event, context):
         }
     }
 
-    _logger.debug('Response: {}'.format(json.dumps(resp)))
+    _logger.info('Response: {}'.format(json.dumps(resp)))
     return resp
 
