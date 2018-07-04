@@ -7,7 +7,7 @@ plugins:
 
 
 custom:
-  stage: "dev"
+  stage: "${env:SLS_STAGE, 'dev'}"
   profile: "${opt:aws-profile, env:AWS_PROFILE, env:AWS_DEFAULT_PROFILE, 'default'}"
   hostedZoneName: "dev.serverlessops.io"
   bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
