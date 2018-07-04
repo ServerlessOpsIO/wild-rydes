@@ -15,9 +15,6 @@ custom:
   aliasHostedZoneId: Z3AQBSTGFYJSTF    # us-east-1
   aliasDNSName: s3-website-us-east-1.amazonaws.com
 
-  indexDocument: index.html
-  errorDocument: error.html
-
   s3Sync:
     - bucketName: ${self:custom.bucketName}
       localDir: static
