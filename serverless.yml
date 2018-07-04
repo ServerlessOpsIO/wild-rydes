@@ -7,7 +7,7 @@ plugins:
 
 
 custom:
-  stage: "dev"
+  stage: "${env:SLS_STAGE, 'dev'}"
   hostedZoneName: "dev.serverlessops.io"
   bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
   # Additional region zone IDs and DNS names found here:
