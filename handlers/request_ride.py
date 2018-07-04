@@ -4,15 +4,21 @@ from datetime import datetime
 import logging
 import json
 import os
+import random
 import uuid
 
-from botocore.vendored import requests
+import boto3
 
 log_level = os.environ.get('LOG_LEVEL', 'INFO')
 logging.root.setLevel(logging.getLevelName(log_level))  # type:ignore
+logging.getLogger('botocore').setLevel(logging.WARN)
+logging.getLogger('boto3').setLevel(logging.getLevelName(log_level))    # type:ignore
 _logger = logging.getLogger(__name__)
 
-REQUEST_UNICORN_URL = os.environ.get('REQUEST_UNICORN_URL')
+DYNAMODB_TABLE = os.environ.get('DYNAMODB_TABLE')
+UNICORN_HASH_KEY = os.environ.get('UNICORN_HASH_KEY')
+dynamodb = boto3.resource('dynamodb')
+DDT = dynamodb.Table(DYNAMODB_TABLE)
 
 
 def _generate_ride_id():
@@ -39,11 +45,17 @@ def _get_timestamp_from_uuid(u):
     return datetime.fromtimestamp((u.time - 0x01b21dd213814000) * 100 / 1e9)
 
 
-def _get_unicorn(url=REQUEST_UNICORN_URL):
+def _get_unicorn():
     '''Return a unicorn from the fleet'''
-    # FIXME: would be good to get to a point where we don't fetch the entire table.
-    unicorn = requests.get(REQUEST_UNICORN_URL)
-    return unicorn.json()
+    # Get a few of them and return one at random. Need to eventually randomize
+    # where in the table we start our lookup.
+    results = DDT.scan(
+        Limit=5,
+    )
+    unicorns = results.get('Items')
+    unicorn = unicorns[random.randint(0, len(unicorns) - 1)]
+
+    return unicorn
 
 
 def _get_pickup_location(body):
@@ -67,5 +79,6 @@ def handler(event, context):
         }
     }
 
+    _logger.debug('Response: {}'.format(json.dumps(resp)))
     return resp
 

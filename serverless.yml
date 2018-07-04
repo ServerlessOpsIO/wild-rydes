@@ -7,9 +7,9 @@ plugins:
 
 
 custom:
-  stage: "${opt:stage, env:SLS_STAGE, 'dev'}"
+  stage: "dev"
   profile: "${opt:aws-profile, env:AWS_PROFILE, env:AWS_DEFAULT_PROFILE, 'default'}"
-  hostedZoneName: "${env:SLS_HOSTED_ZONE_NAME, 'dev.training.serverlessops.io'}"
+  hostedZoneName: "dev.serverlessops.io"
   bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
   # Additional region zone IDs and DNS names found here:
   # https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
@@ -67,35 +67,15 @@ functions:
     memorySize: 128
     timeout: 30
     environment:
-      REQUEST_UNICORN_URL:
-        Fn::Join:
-          - ""
-          - - "https://"
-            - Ref: ApiGatewayRestApi
-            - ".execute-api."
-            - Ref: AWS::Region
-            - ".amazonaws.com/"
-            - "${self:custom.stage}"
-            - "/unicorn"
-    events:
-      - http:
-          path: /ride
-          method: post
-          cors: true
-
-  RequestUnicorn:
-    handler: handlers/get_unicorn.handler
-    description: "Request a Unicorn."
-    memorySize: 128
-    timeout: 30
-    environment:
+      LOG_LEVEL: "DEBUG"
       DYNAMODB_TABLE:
         Ref: UnicornsTable
       UNICORN_HASH_KEY: "${self:custom.unicorn_hash_key}"
     events:
       - http:
-          path: /unicorn
-          method: get
+          path: /ride
+          method: post
+          cors: true
 
   LoadTable:
     handler: handlers/load_table.handler
@@ -123,8 +103,8 @@ resources:
         AccessControl: PublicRead
         BucketName: ${self:custom.bucketName}
         WebsiteConfiguration:
-          IndexDocument: ${self:custom.indexDocument}
-          ErrorDocument: ${self:custom.errorDocument}
+          IndexDocument: index.html
+          ErrorDocument: error.html
 
     StaticSiteS3BucketPolicy:
       Type: AWS::S3::BucketPolicy
