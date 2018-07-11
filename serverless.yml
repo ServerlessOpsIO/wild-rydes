@@ -9,7 +9,7 @@ plugins:
 custom:
   stage: "${env:SLS_STAGE, 'dev'}"
   profile: "${opt:aws-profile, env:AWS_PROFILE, env:AWS_DEFAULT_PROFILE, 'default'}"
-  hostedZoneName: "dev.serverlessops.io"
+  hostedZoneName: "dev.training.serverlessops.io"
   bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
   # Additional region zone IDs and DNS names found here:
   # https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
