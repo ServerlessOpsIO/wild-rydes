@@ -9,6 +9,10 @@ plugins:
 custom:
   stage: "${env:SLS_STAGE, 'dev'}"
   profile: "${opt:aws-profile, env:AWS_PROFILE, env:AWS_DEFAULT_PROFILE, 'default'}"
+  log_level: "${env:LOG_LEVEL, 'INFO'}"
+
+  request_unicorn_url: "${cf:wild-rydes-ride-fleet-${self:custom.stage}.RequestUnicornUrl}"
+
   hostedZoneName: "dev.training.serverlessops.io"
   bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
   # Additional region zone IDs and DNS names found here:
@@ -20,8 +24,6 @@ custom:
     - bucketName: ${self:custom.bucketName}
       localDir: static
 
-  unicorn_hash_key: 'Name'
-  unicorn_table_data: 'data/unicorns.json'
   config_s3_object: 'js/config.js'
 
 
@@ -30,18 +32,11 @@ provider:
   runtime: python3.6
   profile: ${self:custom.profile}
   stage: ${self:custom.stage}
+  environment:
+    LOG_LEVEL: ${self:custom.log_level}
   stackTags:
     serverless:service: ${self:service}
   iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:PutItem
-        - dynamodb:GetItem
-        - dynamodb:Scan
-      Resource:
-        Fn::GetAtt:
-          - UnicornsTable
-          - Arn
     - Effect: "Allow"
       Action:
         - "s3:PutObject"
@@ -64,25 +59,13 @@ functions:
     memorySize: 128
     timeout: 30
     environment:
-      LOG_LEVEL: "DEBUG"
-      DYNAMODB_TABLE:
-        Ref: UnicornsTable
-      UNICORN_HASH_KEY: "${self:custom.unicorn_hash_key}"
+      LOG_LEVEL: "${self:custom.log_level}"
+      REQUEST_UNICORN_URL: "${self:custom.request_unicorn_url}"
     events:
       - http:
           path: /ride
           method: post
           cors: true
-
-  LoadTable:
-    handler: handlers/load_table.handler
-    description: "Load an initial table."
-    memorySize: 128
-    timeout: 60
-    environment:
-      DYNAMODB_TABLE:
-        Ref: UnicornsTable
-      INITIAL_TABLE_DATA: "${self:custom.unicorn_table_data}"
 
   StaticSiteConfig:
     handler: handlers/update_static_site_config.handler
@@ -164,36 +147,6 @@ resources:
         Name:
           Ref: StaticSite
         Type: 'A'
-
-    UnicornsTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        AttributeDefinitions:
-          - AttributeName: "${self:custom.unicorn_hash_key}"
-            AttributeType: S
-        KeySchema:
-          - AttributeName: "${self:custom.unicorn_hash_key}"
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 5
-          WriteCapacityUnits: 5
-
-    LoadTable:
-      Type: "Custom::LoadTable"
-      Properties:
-        ServiceToken:
-          Fn::GetAtt:
-            - LoadTableLambdaFunction
-            - Arn
-        InvokeUrl:
-          Fn::Join:
-            - ""
-            - - "https://"
-              - Ref: ApiGatewayRestApi
-              - ".execute-api."
-              - Ref: AWS::Region
-              - ".amazonaws.com/"
-              - "${self:custom.stage}"
 
     StaticSiteConfigUpdate:
       Type: "Custom::ConfigFile"
