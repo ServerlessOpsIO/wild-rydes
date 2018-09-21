@@ -4,18 +4,15 @@ from datetime import datetime
 import logging
 import json
 import os
-import random
 import uuid
 
-import boto3
+from botocore.vendored import requests
 
-logging.root.setLevel(logging.INFO)
+log_level = os.environ.get('LOG_LEVEL', 'INFO')
+logging.root.setLevel(logging.getLevelName(log_level))  # type:ignore
 _logger = logging.getLogger(__name__)
 
-DYNAMODB_TABLE = os.environ.get('DYNAMODB_TABLE')
-UNICORN_HASH_KEY = os.environ.get('UNICORN_HASH_KEY')
-dynamodb = boto3.resource('dynamodb')
-DDT = dynamodb.Table(DYNAMODB_TABLE)
+REQUEST_UNICORN_URL = os.environ.get('REQUEST_UNICORN_URL')
 
 
 def _generate_ride_id():
@@ -42,17 +39,10 @@ def _get_timestamp_from_uuid(u):
     return datetime.fromtimestamp((u.time - 0x01b21dd213814000) * 100 / 1e9)
 
 
-def _get_unicorn():
+def _get_unicorn(url=REQUEST_UNICORN_URL):
     '''Return a unicorn from the fleet'''
-    # Get a few of them and return one at random. Need to eventually randomize
-    # where in the table we start our lookup.
-    results = DDT.scan(
-        Limit=5,
-    )
-    unicorns = results.get('Items')
-    unicorn = unicorns[random.randint(0, len(unicorns) - 1)]
-
-    return unicorn
+    unicorn = requests.get(REQUEST_UNICORN_URL)
+    return unicorn.json()
 
 
 def _get_pickup_location(body):
