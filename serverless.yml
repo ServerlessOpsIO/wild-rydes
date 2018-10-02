@@ -23,6 +23,7 @@ custom:
   s3Sync:
     - bucketName: ${self:custom.bucketName}
       localDir: static
+      deleteRemoved: false
 
   config_s3_object: 'js/config.js'
 
@@ -47,7 +48,7 @@ provider:
         - Fn::Join:
           - '/'
           - - Fn::GetAtt:
-              - StaticSiteConfig
+              - StaticSite
               - Arn
             - '*'
 
@@ -109,34 +110,6 @@ resources:
                   ]
                 ]
 
-    StaticSiteConfig:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: ${self:custom.bucketName}-config
-
-    StaticSiteConfigS3BucketPolicy:
-      Type: AWS::S3::BucketPolicy
-      Properties:
-        Bucket:
-          Ref: StaticSiteConfig
-        PolicyDocument:
-          Statement:
-            - Sid: PublicReadGetObject
-              Effect: Allow
-              Principal: "*"
-              Action:
-              - s3:GetObject
-              Resource:
-                Fn::Join: [
-                  "", [
-                    "arn:aws:s3:::",
-                    {
-                      "Ref": "StaticSiteConfig"
-                    },
-                    "/*"
-                  ]
-                ]
-
     DnsRecord:
       Type: "AWS::Route53::RecordSet"
       Properties:
@@ -156,7 +129,7 @@ resources:
             - StaticSiteConfigLambdaFunction
             - Arn
         S3Bucket:
-          Ref: StaticSiteConfig
+          Ref: StaticSite
         S3Object: "${self:custom.config_s3_object}"
         RequestRideUrl:
           Fn::Join:
