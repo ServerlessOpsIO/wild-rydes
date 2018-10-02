@@ -7,6 +7,9 @@
   "dependencies": {},
   "devDependencies": {
     "serverless-python-requirements": "^4.0.3",
-    "serverless-s3-sync": "^1.3.0"
+    "serverless-s3-sync": "^1.7.0"
+  },
+  "scripts": {
+    "setup": "pyenv virtualenv 3.6 $(basename $(pwd)) && pyenv local $(basename $(pwd)) && pip install -r requirements.txt -r requirements-dev.txt"
   }
 }
