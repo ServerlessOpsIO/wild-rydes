@@ -11,7 +11,7 @@ custom:
   profile: "${opt:aws-profile, env:AWS_PROFILE, env:AWS_DEFAULT_PROFILE, 'default'}"
   log_level: "${env:LOG_LEVEL, 'INFO'}"
 
-  request_unicorn_url: "${cf:wild-rydes-ride-fleet-${self:custom.stage}.RequestUnicornUrl}"
+  request_unicorn_url: "${ssm:/${self:custom.stage}/wild-rydes-ride-fleet/RequestUnicornUrl}"
 
   hostedZoneName: "dev.training.serverlessops.io"
   bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
