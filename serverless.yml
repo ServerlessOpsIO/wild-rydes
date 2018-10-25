@@ -14,7 +14,7 @@ custom:
 
   request_unicorn_url: "${cf:wild-rydes-ride-fleet-${self:custom.stage}.RequestUnicornUrl}"
 
-  hostedZoneName: "${ssm:/${self:service}/${self:provider.stage}/ServerlessOpsDomain}"
+  hostedZoneName: "${ssm:/route53/${self:custom.profile}/ServerlessOpsDomain}"
   bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
   # Additional region zone IDs and DNS names found here:
   # https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
