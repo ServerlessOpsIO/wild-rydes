@@ -9,11 +9,12 @@ plugins:
 custom:
   stage: "${env:SLS_STAGE, 'dev'}"
   profile: "${opt:aws-profile, env:AWS_PROFILE, env:AWS_DEFAULT_PROFILE, 'default'}"
+  region: "${opt:region, 'us-east-2'}"
   log_level: "${env:LOG_LEVEL, 'INFO'}"
 
   request_unicorn_url: "${cf:wild-rydes-ride-fleet-${self:custom.stage}.RequestUnicornUrl}"
 
-  hostedZoneName: "dev.training.serverlessops.io"
+  hostedZoneName: "${ssm:/${self:service}/${self:provider.stage}/ServerlessOpsDomain}"
   bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
   # Additional region zone IDs and DNS names found here:
   # https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
@@ -33,6 +34,8 @@ provider:
   runtime: python3.6
   profile: ${self:custom.profile}
   stage: ${self:custom.stage}
+  region: ${self:custom.region}
+  cfnRole: "arn:aws:iam::${env:AWS_ACCOUNT}:role/CloudFormationDeployRole"
   environment:
     LOG_LEVEL: ${self:custom.log_level}
   stackTags:
