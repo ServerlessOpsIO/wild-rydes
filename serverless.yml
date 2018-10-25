@@ -11,7 +11,7 @@ custom:
   region: "${opt:region, 'us-east-1'}"
   log_level: "${env:LOG_LEVEL, 'INFO'}"
 
-  hostedZoneName: "${ssm:/${self:service}/${self:provider.stage}/ServerlessOpsDomain}"
+  hostedZoneName: "${ssm:/route53/${self:custom.profile}/ServerlessOpsDomain}"
   bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
   # Additional region zone IDs and DNS names found here:
   # https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
