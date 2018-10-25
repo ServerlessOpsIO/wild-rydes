@@ -17,8 +17,8 @@ custom:
   bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
   # Additional region zone IDs and DNS names found here:
   # https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
-  aliasHostedZoneId: Z3AQBSTGFYJSTF    # us-east-1
-  aliasDNSName: s3-website-us-east-1.amazonaws.com
+  aliasHostedZoneId: Z2O1EMRO9K5GLX    # us-east-2
+  aliasDNSName: s3-website.us-east-2.amazonaws.com
 
   s3Sync:
     - bucketName: ${self:custom.bucketName}
