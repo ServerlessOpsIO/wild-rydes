@@ -8,8 +8,10 @@ plugins:
 
 custom:
   stage: "${env:SLS_STAGE, 'dev'}"
+  region: "${opt:region, 'us-east-1'}"
+  log_level: "${env:LOG_LEVEL, 'INFO'}"
 
-  hostedZoneName: "dev.training.serverlessops.io"
+  hostedZoneName: "${ssm:/${self:service}/${self:provider.stage}/ServerlessOpsDomain}"
   bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
   # Additional region zone IDs and DNS names found here:
   # https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
@@ -30,6 +32,10 @@ provider:
   name: aws
   runtime: python3.6
   stage: ${self:custom.stage}
+  region: ${self:custom.region}
+  cfnRole: "arn:aws:iam::${env:AWS_ACCOUNT}:role/CloudFormationDeployRole"
+  environment:
+    LOG_LEVEL: ${self:custom.log_level}
   stackTags:
     serverless:service: ${self:service}
   iamRoleStatements:
