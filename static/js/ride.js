@@ -38,6 +38,23 @@ WildRydes.map = WildRydes.map || {};
         });
     }
 
+    function sendFeedback(comment) {
+        $.ajax({
+            method: 'POST',
+            url: _config.api.invokeFeedbackUrl,
+            data: JSON.stringify({
+                comment: comment
+            }),
+            contentType: 'application/json',
+            success: completeRequest,
+            error: function ajaxError(jqXHR, textStatus, errorThrown) {
+                console.error('Error sending feedback: ', textStatus, ', Details: ', errorThrown);
+                console.error('Response: ', jqXHR.responseText);
+                alert('An error occured when sending your request:\n' + jqXHR.responseText);
+            }
+        });
+    }
+
     function completeRequest(result) {
         var unicorn;
         var pronoun;
@@ -56,6 +73,7 @@ WildRydes.map = WildRydes.map || {};
     // Register click handler for #request button
     $(function onDocReady() {
         $('#request').click(handleRequestClick);
+        $('#submit').click(handleFeedbackClick);
         $(WildRydes.map).on('pickupChange', handlePickupChanged);
 
         WildRydes.authToken.then(function updateAuthMessage(token) {
@@ -80,6 +98,12 @@ WildRydes.map = WildRydes.map || {};
         var pickupLocation = WildRydes.map.selectedPoint;
         event.preventDefault();
         requestUnicorn(pickupLocation);
+    }
+
+    function handleFeedbackClick(event) {
+        var comment =
+        event.preventDefault();
+        sendFeedback(comment);
     }
 
     function animateArrival(callback) {
