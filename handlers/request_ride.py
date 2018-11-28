@@ -9,6 +9,8 @@ import uuid
 from botocore.vendored import requests
 
 from thundra.thundra_agent import Thundra
+from thundra.plugins.trace.traceable import Traceable
+
 THUNDRA_API_KEY = os.environ.get('THUNDRA_API_KEY', '')
 thundra = Thundra(api_key=THUNDRA_API_KEY)
 
@@ -23,11 +25,13 @@ REQUEST_UNICORN_URL = os.environ.get('REQUEST_UNICORN_URL')
 RIDE_RECORD_URL = os.environ.get('RIDE_RECORD_URL')
 
 
+@Traceable(trace_args=True, trace_return_value=True)
 def _generate_ride_id():
     '''Generate a ride ID.'''
     return uuid.uuid1()
 
 
+@Traceable(trace_args=True, trace_return_value=True)
 def _get_ride(pickup_location):
     '''Get a ride.'''
     ride_id = _generate_ride_id()
@@ -42,22 +46,26 @@ def _get_ride(pickup_location):
     return resp
 
 
+@Traceable(trace_args=True, trace_return_value=True)
 def _get_timestamp_from_uuid(u):
     '''Return a timestamp from the given UUID'''
     return datetime.fromtimestamp((u.time - 0x01b21dd213814000) * 100 / 1e9)
 
 
+@Traceable(trace_args=True, trace_return_value=True)
 def _get_unicorn(url=REQUEST_UNICORN_URL):
     '''Return a unicorn from the fleet'''
     unicorn = requests.get(REQUEST_UNICORN_URL)
     return unicorn.json()
 
 
+@Traceable(trace_args=True, trace_return_value=True)
 def _get_pickup_location(body):
     '''Return pickup location from event'''
     return body.get('PickupLocation')
 
 
+@Traceable(trace_args=True, trace_return_value=True)
 def _post_ride_record(ride, url=RIDE_RECORD_URL):
     '''Record ride info'''
     resp = requests.post(
