@@ -1,19 +1,13 @@
 config:
-  payload:
-    - path: "./testing-data.csv"
-      fields:
-        - "url"
-  target: "{{url}}"
   phases:
     - duration: 60
       arrivalRate: 1
-  defaults:
-    headers:
-      <header>: <value>
 scenarios:
   - flow:
     - post:
-        url: '/<ENDPOINT>'
+        url: '/ride'
         json:
-          <key>: <VALUE>
+          PickupLocation:
+            Latitude: 42.35250862285574
+            Longitude: -71.05289904884849
 
