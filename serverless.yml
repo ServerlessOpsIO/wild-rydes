@@ -11,6 +11,8 @@ custom:
   region: "${opt:region, 'us-east-2'}"
   log_level: "${env:LOG_LEVEL, 'INFO'}"
 
+  thundraApiKey: "${ssm:/thundra/root/api-key}"
+
   request_unicorn_url: "${cf:wild-rydes-ride-fleet-${self:custom.stage}.RequestUnicornUrl}"
   ride_record_url: "${ssm:/wild-rydes-ride-record/${self:custom.stage}/URL}"
 
@@ -37,6 +39,7 @@ provider:
   cfnRole: "arn:aws:iam::${env:AWS_ACCOUNT}:role/CloudFormationDeployRole"
   environment:
     LOG_LEVEL: ${self:custom.log_level}
+    THUNDRA_API_KEY: ${self:custom.thundraApiKey}
   stackTags:
     serverless:service: ${self:service}
   iamRoleStatements:
