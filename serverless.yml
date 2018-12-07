@@ -12,6 +12,7 @@ custom:
   log_level: "${env:LOG_LEVEL, 'INFO'}"
 
   request_unicorn_url: "${cf:wild-rydes-ride-fleet-${self:custom.stage}.RequestUnicornUrl}"
+  ride_record_url: "${ssm:/wild-rydes-ride-record/training-dev/URL}"
 
   hostedZoneName: "${ssm:/route53/root/ServerlessOpsDomain}"
   bucketName: "${self:service}-${self:custom.stage}.${self:custom.hostedZoneName}"
@@ -63,6 +64,7 @@ functions:
     environment:
       LOG_LEVEL: "${self:custom.log_level}"
       REQUEST_UNICORN_URL: "${self:custom.request_unicorn_url}"
+      RIDE_RECORD_URL: "${self:custom.ride_record_url}"
     events:
       - http:
           path: /ride
