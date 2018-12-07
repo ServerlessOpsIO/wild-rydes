@@ -13,6 +13,7 @@ logging.root.setLevel(logging.getLevelName(log_level))  # type:ignore
 _logger = logging.getLogger(__name__)
 
 REQUEST_UNICORN_URL = os.environ.get('REQUEST_UNICORN_URL')
+RIDE_RECORD_URL = os.environ.get('RIDE_RECORD_URL')
 
 
 def _generate_ride_id():
@@ -50,6 +51,16 @@ def _get_pickup_location(body):
     return body.get('PickupLocation')
 
 
+def _post_ride_record(ride, url=RIDE_RECORD_URL):
+    '''Record ride info'''
+    resp = requests.post(
+        url,
+        json=ride
+    )
+
+    return resp
+
+
 def handler(event, context):
     '''Function entry'''
     _logger.info('Request: {}'.format(json.dumps(event)))
@@ -57,6 +68,7 @@ def handler(event, context):
     body = json.loads(event.get('body'))
     pickup_location = _get_pickup_location(body)
     ride_resp = _get_ride(pickup_location)
+    _post_ride_record(ride_resp)
 
     resp = {
         'statusCode': 201,
