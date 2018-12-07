@@ -13,9 +13,11 @@ THUNDRA_API_KEY = os.environ.get('THUNDRA_API_KEY', '')
 thundra = Thundra(api_key=THUNDRA_API_KEY)
 
 
+from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
 log_level = os.environ.get('LOG_LEVEL', 'INFO')
 logging.root.setLevel(logging.getLevelName(log_level))  # type:ignore
 _logger = logging.getLogger(__name__)
+_logger.addHandler(ThundraLogHandler())
 
 REQUEST_UNICORN_URL = os.environ.get('REQUEST_UNICORN_URL')
 RIDE_RECORD_URL = os.environ.get('RIDE_RECORD_URL')
