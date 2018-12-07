@@ -59,7 +59,7 @@ functions:
     handler: handlers/request_ride.handler
     description: "Request a ride."
     memorySize: 128
-    timeout: 30
+    timeout: 29
     environment:
       LOG_LEVEL: "${self:custom.log_level}"
       REQUEST_UNICORN_URL: "${self:custom.request_unicorn_url}"
