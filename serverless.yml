@@ -4,12 +4,15 @@ service: wild-rydes
 plugins:
   - serverless-s3-sync
   - serverless-python-requirements
-
+  - serverless-plugin-thundra
 
 custom:
   stage: "${env:SLS_STAGE, 'dev'}"
   region: "${opt:region, 'us-east-2'}"
   log_level: "${env:LOG_LEVEL, 'INFO'}"
+
+  thundra:
+    apiKey: "${ssm:/thundra/root/api-key}"
 
   request_unicorn_url: "${cf:wild-rydes-ride-fleet-${self:custom.stage}.RequestUnicornUrl}"
   ride_record_url: "${ssm:/wild-rydes-ride-record/training-dev/URL}"

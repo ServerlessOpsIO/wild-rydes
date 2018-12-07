@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "license": "MIT",
   "repository": "github:ServerlessOpsIO/wild-rydes",
-  "dependencies": {},
+  "dependencies": {
+    "serverless-plugin-thundra": "^1.0.0"
+  },
   "devDependencies": {
     "serverless-python-requirements": "^4.0.3",
     "serverless-s3-sync": "^1.7.0"
