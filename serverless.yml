@@ -69,7 +69,8 @@ functions:
     environment:
       LOG_LEVEL: "${self:custom.log_level}"
       REQUEST_UNICORN_URL: "${self:custom.request_unicorn_url}"
-      RIDE_RECORD_URL: "${self:custom.ride_record_url}"
+      RIDES_SNS_TOPIC_ARN:
+        Ref: RidesSnsTopic
     events:
       - http:
           path: /ride
