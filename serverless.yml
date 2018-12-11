@@ -56,6 +56,11 @@ provider:
               - StaticSite
               - Arn
             - '*'
+    - Effect: "Allow"
+      Action:
+        - "sns:Publish"
+      Resource:
+        - Ref: RidesSnsTopic
 
 
 functions:
@@ -83,6 +88,10 @@ functions:
 
 resources:
   Resources:
+
+    RidesSnsTopic:
+      Type: AWS::SNS::Topic
+
     ## Specifying the S3 Bucket
     StaticSite:
       Type: AWS::S3::Bucket
