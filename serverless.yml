@@ -89,6 +89,14 @@ resources:
     RidesSnsTopic:
       Type: AWS::SNS::Topic
 
+    RidesSnsTopicArnSsmParam:
+      Type: "AWS::SSM::Parameter"
+      Properties:
+        Name: "/${self:service}/${self:provider.stage}/SnsTopicArn"
+        Type: String
+        Value:
+          Ref: RidesSnsTopic
+
     ## Specifying the S3 Bucket
     StaticSite:
       Type: AWS::S3::Bucket
