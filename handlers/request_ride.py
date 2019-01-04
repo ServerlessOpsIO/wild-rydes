@@ -24,6 +24,11 @@ _logger.addHandler(ThundraLogHandler())
 
 REQUEST_UNICORN_URL = os.environ.get('REQUEST_UNICORN_URL')
 
+SSM_CLIENT = boto3.client('ssm')
+REQUEST_UNICORN_API_KEY_SSM_PARAM = os.environ.get('REQUEST_UNICORN_API_KEY_SSM_PARAM')
+REQUEST_UNICORN_API_KEY = SSM_CLIENT.get_parameter(Name=REQUEST_UNICORN_API_KEY_SSM_PARAM, WithDecryption=True)['Parameter']['Value']
+
+
 RIDES_SNS_TOPIC_ARN = os.environ.get('RIDES_SNS_TOPIC_ARN')
 SNS_CLIENT = boto3.client('sns')
 
@@ -56,9 +61,14 @@ def _get_timestamp_from_uuid(u):
 
 
 @Traceable(trace_args=True, trace_return_value=True)
-def _get_unicorn(url=REQUEST_UNICORN_URL):
+def _get_unicorn(url=REQUEST_UNICORN_URL, api_key=REQUEST_UNICORN_API_KEY):
     '''Return a unicorn from the fleet'''
-    unicorn = requests.get(REQUEST_UNICORN_URL)
+    unicorn = requests.get(
+        REQUEST_UNICORN_URL,
+        headers={
+            'x-api-key': REQUEST_UNICORN_API_KEY
+        }
+    )
     return unicorn.json()
 
 
