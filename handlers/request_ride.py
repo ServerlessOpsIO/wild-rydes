@@ -7,7 +7,7 @@ import os
 import uuid
 
 import boto3
-from botocore.vendored import requests
+import requests
 
 from thundra.thundra_agent import Thundra
 from thundra.plugins.trace.traceable import Traceable
