@@ -6,7 +6,7 @@ import json
 import os
 import uuid
 
-from botocore.vendored import requests
+import requests
 
 log_level = os.environ.get('LOG_LEVEL', 'INFO')
 logging.root.setLevel(logging.getLevelName(log_level))  # type:ignore
