@@ -1,4 +1,4 @@
 boto3
 cfn_resource
 thundra
-requests==2.19
+requests==2.20
