@@ -7,13 +7,13 @@ import os
 import uuid
 
 import boto3
-import requests
 
 log_level = os.environ.get('LOG_LEVEL', 'INFO')
 logging.root.setLevel(logging.getLevelName(log_level))  # type:ignore
 _logger = logging.getLogger(__name__)
 
-REQUEST_UNICORN_URL = os.environ.get('REQUEST_UNICORN_URL')
+REQUEST_UNICORN_ARN = os.environ.get('REQUEST_UNICORN_ARN')
+LAMBDA_CLIENT = boto3.client('lambda')
 
 RIDES_SNS_TOPIC_ARN = os.environ.get('RIDES_SNS_TOPIC_ARN')
 SNS_CLIENT = boto3.client('sns')
@@ -43,10 +43,14 @@ def _get_timestamp_from_uuid(u):
     return datetime.fromtimestamp((u.time - 0x01b21dd213814000) * 100 / 1e9)
 
 
-def _get_unicorn(url=REQUEST_UNICORN_URL):
+def _get_unicorn(arn=REQUEST_UNICORN_ARN):
     '''Return a unicorn from the fleet'''
-    unicorn = requests.get(REQUEST_UNICORN_URL)
-    return unicorn.json()
+    response = LAMBDA_CLIENT.invoke(
+        FunctionName=arn
+    )
+    unicorn = response.get('Payload').read().decode()
+    _logger.info('Unicorn: {}'.format(unicorn))
+    return json.loads(unicorn)
 
 
 def _get_pickup_location(body):
